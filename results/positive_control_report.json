@@ -1,0 +1,192 @@
+{
+  "deterministic": {
+    "edges_zero": {
+      "value": 0.0,
+      "pass": true
+    },
+    "no_negative": {
+      "value": 0.0,
+      "pass": true
+    },
+    "mirror_symmetric": {
+      "value": 2.6557972985300185e-16,
+      "pass": true
+    },
+    "xy_symmetric": {
+      "value": 2.0920950266264773e-09,
+      "pass": true
+    },
+    "centre_AHL_over_threshold": {
+      "value": 0.13348382310828433,
+      "pass": null
+    },
+    "picard_converged": {
+      "value": 3.0,
+      "pass": true
+    }
+  },
+  "convergence": {
+    "U": 3.1785013995210035e-05,
+    "L": 8.816440425432774e-05,
+    "pass": true
+  },
+  "perturbation": {
+    "fractions": [
+      0.2,
+      0.3,
+      0.4,
+      0.5
+    ],
+    "alpha_U": {
+      "xi": [
+        0.08110815834616786,
+        0.11700706664458098,
+        0.15042532646961684,
+        0.181706629737605
+      ],
+      "phi": [
+        0.22120676316778037,
+        0.3285039489621209,
+        0.43379273477295094,
+        0.5372077201872751
+      ],
+      "monotone": true
+    },
+    "beta_U": {
+      "xi": [
+        0.003934757901152821,
+        0.005919611680307795,
+        0.007916228731458362,
+        0.009924694351465684
+      ],
+      "phi": [
+        0.011259265086255476,
+        0.016974773712251066,
+        0.022748573680335622,
+        0.028581461216968303
+      ],
+      "monotone": true
+    },
+    "beta_L": {
+      "xi": [
+        0.04231757119433359,
+        0.060490749951641165,
+        0.07709483408148175,
+        0.09236078686250744
+      ],
+      "phi": [
+        0.0790612032748883,
+        0.11529787900401157,
+        0.14970408323255913,
+        0.18249052587631912
+      ],
+      "monotone": true
+    }
+  },
+  "statistical": {
+    "runs": [
+      {
+        "A_peak": 4.0031023541033806,
+        "A_peak_delay_h": 4.0,
+        "R_total_peak": 51.42495214803525,
+        "R_total_final": 4.595985425889991,
+        "U_max_final": 4.386507853747789e-10,
+        "U_mean_final": 1.1900153322410078e-11,
+        "L_max_final": 7.737101232471492e-13,
+        "L_peak_time": 12.5,
+        "U_fall_from_peak": 0.04507859123244301,
+        "L_fall_from_peak": 8.485839404729827e-05
+      },
+      {
+        "A_peak": 4.0031023541033806,
+        "A_peak_delay_h": 4.0,
+        "R_total_peak": 29.03203645316991,
+        "R_total_final": 2.5946706967966273,
+        "U_max_final": 3.0418339336411024e-10,
+        "U_mean_final": 1.9865960533735662e-11,
+        "L_max_final": 1.7802289906458377e-13,
+        "L_peak_time": 13.0,
+        "U_fall_from_peak": 0.02755871592210752,
+        "L_fall_from_peak": 1.546731085696337e-05
+      },
+      {
+        "A_peak": 4.0031023541033806,
+        "A_peak_delay_h": 4.0,
+        "R_total_peak": 49.15086922025736,
+        "R_total_final": 4.392744556297236,
+        "U_max_final": 6.840895722435656e-10,
+        "U_mean_final": 8.438360374253279e-11,
+        "L_max_final": 2.2741639830281343e-12,
+        "L_peak_time": 12.0,
+        "U_fall_from_peak": 0.05765893332587112,
+        "L_fall_from_peak": 0.0001443293263181252
+      },
+      {
+        "A_peak": 4.0031023541033806,
+        "A_peak_delay_h": 4.0,
+        "R_total_peak": 39.80955000217391,
+        "R_total_final": 3.557885889607395,
+        "U_max_final": 5.235973302673518e-10,
+        "U_mean_final": 6.386874316831622e-11,
+        "L_max_final": 8.270516468524548e-13,
+        "L_peak_time": 12.5,
+        "U_fall_from_peak": 0.04618006661640821,
+        "L_fall_from_peak": 5.3950476584743414e-05
+      }
+    ],
+    "mean": {
+      "A_peak": 4.0031023541033806,
+      "A_peak_delay_h": 4.0,
+      "R_total_peak": 42.35435195590911,
+      "R_total_final": 3.785321642147812,
+      "U_max_final": 4.876302703124516e-10,
+      "U_mean_final": 4.500461519174869e-11,
+      "L_max_final": 1.0132371630480805e-12,
+      "L_peak_time": 12.5,
+      "U_fall_from_peak": 0.04411907677420747,
+      "L_fall_from_peak": 7.465137695178257e-05
+    },
+    "checks": {
+      "A_peak (5%)": {
+        "ours": 4.0031023541033806,
+        "paper": 4.0,
+        "pass": true
+      },
+      "A_peak_delay_h": {
+        "ours": 4.0,
+        "paper": "3.5-4.5",
+        "pass": true
+      },
+      "R_total_final (x10)": {
+        "ours": 3.785321642147812,
+        "paper": 2.017,
+        "pass": true
+      },
+      "U_max_final (x10)": {
+        "ours": 4.876302703124516e-10,
+        "paper": 4.89e-10,
+        "pass": true
+      },
+      "U_mean_final (x10)": {
+        "ours": 4.500461519174869e-11,
+        "paper": 1.36e-10,
+        "pass": true
+      },
+      "L_max_final (x10)": {
+        "ours": 1.0132371630480805e-12,
+        "paper": 6.76e-13,
+        "pass": true
+      },
+      "L peaks before dose": {
+        "ours": 12.5,
+        "paper": "< 12.0",
+        "pass": false
+      },
+      "L falls more than U": {
+        "ours": "L 7.5e-05 vs U 4.4e-02",
+        "paper": "L collapses, U lingers",
+        "pass": true
+      }
+    }
+  }
+}
