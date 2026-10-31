@@ -19,6 +19,20 @@
           }
         ]
       }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/save_journal.py\" || python \"$CLAUDE_PROJECT_DIR/.claude/hooks/save_journal.py\""
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/log_prompts.py\" || python \"$CLAUDE_PROJECT_DIR/.claude/hooks/log_prompts.py\""
+          }
+        ]
+      }
     ]
   }
 }
