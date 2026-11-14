@@ -19,6 +19,15 @@ This file summarizes Claude's (Claude Code) contributions to the 02-120 QS final
    - a statistical one, which runs several random seeds and compares against the paper's printed numbers.
 7. **Wrote unit tests** in `tests/test_model.py`: 11 tests, each checking one building block against an answer known independently.
 8. **Made visualizations** in `visualizations/`: Mermaid diagrams of the call chain, and 12 figures, each tied to a model step or quiz question.
+9. **Journal prompt log** (Oct 30). `.claude/hooks/log_prompts.py` writes every typed prompt to `journal/prompts.md` on each submission.
+10. **Refocused on emergence** (Nov 13), in a new self-contained folder [`emergence/`](emergence/README.md):
+    - **Individual cells** that eat, divide, starve, move, and share food over a contact network.
+    - **Two new fields:** a nutrient field and a relayed starvation signal.
+    - **The paper's AHL/lactonase chemistry** underneath, solved by a generalized copy of the ADI solver.
+    - **Videos rendered while simulating:**
+      - Stage 0 animates the paper model. Its solver reproduces `qs_model` exactly (difference 0.0).
+      - Stage 1 compares four food-route experiments, with each mechanism switched on and off.
+    - **Write-up:** findings and caveats are in `emergence/README.md`.
 
 ## How to run
 
