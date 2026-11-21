@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quorum Sensing Build Journal</title>
+  <meta name="description" content="02-120 final project: re-building a quorum-sensing model from the literature, testing it, and extending it to individual cells to look for emergent behavior.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="#top">QS Build Journal</a>
+    <a href="#paper">The paper</a>
+    <a href="#ours">What we did</a>
+    <a href="#quiz">Quiz</a>
+    <a href="#figures">Figures</a>
+    <a href="#emergence">Emergence</a>
+    <a href="#findings">Findings</a>
+    <a href="#next">Next</a>
+  </div>
+</nav>
+
+<main id="top">
+
+  <!-- ===================== HERO ===================== -->
+  <header class="hero">
+    <p class="eyebrow">02-120 Programming for Scientists · Final project</p>
+    <h1>How do bacteria decide together, and what emerges when they do?</h1>
+    <p class="lede">
+      A build journal by Michaela Xie (with Claude Code). We re-built a published
+      quorum-sensing (QS) model, proved our copy matches it, found where it falls short, and
+      extended it to individual cells that eat, starve, share food and signal, rendered as videos.
+    </p>
+    <div class="chips">
+      <a class="chip" href="https://github.com/michaelaistired/02120_QS_Final_Project">Code on GitHub</a>
+      <a class="chip" href="https://doi.org/10.3389/fams.2022.951783">Paper: Kuttler &amp; Maslovskaya 2022</a>
+      <span class="chip">Python · NumPy · Matplotlib</span>
+      <span class="chip">11 + 8 unit tests passing</span>
+    </div>
+  </header>
+
+  <!-- ===================== BACKGROUND ===================== -->
+  <section id="paper">
+    <p class="eyebrow">Background</p>
+    <h2>The starting point: a published model</h2>
+    <p class="lede">
+      Kuttler &amp; Maslovskaya (2022), <em>Computer-assisted modeling of quorum sensing in a
+      bacterial population exposed to antibiotics</em>, Front. Appl. Math. Stat. 8:951783.
+      We used it as a <strong>positive control</strong>: our code has to reproduce it before we trust anything new.
+    </p>
+
+    <div class="grid two">
+      <div class="card accent">
+        <h3>What quorum sensing is</h3>
+        <ul>
+          <li>Bacteria release a small signal molecule (AHL).</li>
+          <li>When enough cells are close together, the signal crosses a <strong>threshold</strong>.</li>
+          <li>Then cells switch behavior together: make more signal, form biofilm, or become virulent.</li>
+          <li>The organism here is <em>Pseudomonas putida</em>, which also makes <strong>lactonase</strong>, an enzyme that destroys its own signal.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>What the paper models</h3>
+        <ul>
+          <li><strong>Two chemicals on a 100 × 100 µm surface:</strong> AHL (U) and lactonase (L). Each one spreads, decays and is produced.</li>
+          <li><strong>A switch:</strong> above the threshold, AHL production jumps about 10×, and lactonase (the brake) turns on slightly later.</li>
+          <li><strong>Colonies as round blobs</strong> that appear at random spots and grow along an S-shaped (logistic) curve.</li>
+          <li><strong>An antibiotic pulse</strong> that shrinks the colonies.</li>
+          <li><strong>Solver:</strong> a fast, stable grid method (ADI with the Thomas algorithm).</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3 style="margin-top:28px">The two equations, in words</h3>
+    <div class="grid two">
+      <div class="card">
+        <h3>AHL (the signal)</h3>
+        <ul>
+          <li><strong>spreads</strong> quickly (diffusion 100 µm²/h)</li>
+          <li><strong>decays</strong> very slowly on its own (half-life ~125 h)</li>
+          <li>is <strong>destroyed by lactonase</strong>, the only place the two equations touch</li>
+          <li>is <strong>produced</strong> by colonies: a little always, much more above the threshold</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Lactonase (the brake)</h3>
+        <ul>
+          <li><strong>spreads</strong> slowly (1 µm²/h, it's a large protein)</li>
+          <li><strong>decays</strong> fast (half-life ~1.4 h)</li>
+          <li>is <strong>produced</strong> only when AHL is above a slightly higher threshold (shifted by ε)</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== PAPER VS OURS ===================== -->
+  <section id="ours">
+    <p class="eyebrow">Paper vs. this project</p>
+    <h2>What we kept, what we changed</h2>
+    <div class="table-wrap">
+      <table>
+        <tr><th></th><th>Paper</th><th>This project</th></tr>
+        <tr><td>Language</td><td>Matlab, with a GUI</td><td>Python packages with tests, scripts and videos</td></tr>
+        <tr><td>Chemistry</td><td>AHL + lactonase</td><td><strong>Identical</strong>, verified to a difference of exactly 0.0</td></tr>
+        <tr><td>Bacteria</td><td>Round blobs with a prescribed density curve</td><td>Stage 1: <strong>individual cells</strong> that eat, divide, starve and move</td></tr>
+        <tr><td>Food</td><td>Not modeled (growth is fixed)</td><td>A <strong>nutrient field</strong> that diffuses in and gets eaten</td></tr>
+        <tr><td>Does QS change behavior?</td><td>No. Signal is a readout only</td><td>Yes, optionally: QS can speed growth (Q7), and cells can share food or relay a starvation signal</td></tr>
+        <tr><td>Checking</td><td>Stability test (Fig. 4)</td><td>Stability test + exact-match control + multi-seed comparison + 19 unit tests</td></tr>
+        <tr><td>Output</td><td>Snapshots</td><td>Figures + <strong>videos of every 0.1 h</strong> of the simulation</td></tr>
+      </table>
+    </div>
+
+    <h3 style="margin-top:28px">How we got here</h3>
+    <ol class="timeline">
+      <li><div class="when">Oct 30</div><strong>Set up the build journal</strong>. Every Claude Code session is saved in <code>journal/</code>.</li>
+      <li><div class="when">Oct 30</div><strong>Read the paper and broke it into 10 steps</strong>, including its pros, cons, scope, and what it can't explain.</li>
+      <li><div class="when">Oct 30</div><strong>Quiz on the model.</strong> 7 questions, graded, with plain-language answers (below).</li>
+      <li><div class="when">Oct 30</div><strong>Built <code>qs_model/</code></strong>: one function per step of each equation, every function documented (input / output / steps / types / role).</li>
+      <li><div class="when">Oct 30</div><strong>Positive controls</strong>: deterministic + statistical comparison with the paper's numbers.</li>
+      <li><div class="when">Oct 30</div><strong>Q7 extension</strong>: QS feeds back on growth.</li>
+      <li><div class="when">Nov 13</div><strong>Refocused on emergence</strong>: built <code>emergence/</code> with individual cells, nutrients, food-sharing networks and a relayed starvation signal, rendered as videos.</li>
+    </ol>
+  </section>
+
+  <!-- ===================== QUIZ ===================== -->
+  <section id="quiz">
+    <p class="eyebrow">Checking understanding before writing code</p>
+    <h2>The quiz: questions, my answers, the real answers</h2>
+    <p class="lede">No code was written until I could explain each piece. Click a question to open it.</p>
+
+    <details class="q">
+      <summary><span class="num">Q1</span> Which term makes the AHL and lactonase equations depend on each other? <span class="badge good">mostly right</span></summary>
+      <div class="body">
+        <h4>My answer</h4>
+        <ul><li>The γ<sub>L→U</sub>·L·U term, where lactonase destroys AHL. I also said production depends on both.</li></ul>
+        <h4>Correct answer</h4>
+        <ul>
+          <li>Right term. But production depends <strong>only on AHL</strong>, not on lactonase.</li>
+          <li>The term multiplies two unknowns, so it's <strong>nonlinear</strong>.</li>
+          <li>The solver handles it by holding lactonase fixed while solving AHL, in the order L → U → L.</li>
+        </ul>
+        <h4>In the code</h4>
+        <ul><li><code>solver.ahl_loss_rate</code>, <code>solver.coupled_half_step</code>; figure 11 shows AHL with vs without this term.</li></ul>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="num">Q2</span> What happens to the switch if ε = 0, or if ε is large? <span class="badge mid">half right</span></summary>
+      <div class="body">
+        <h4>My answer</h4>
+        <ul><li>ε = 0: lactonase would overwhelm AHL. Large ε: lactonase production would be very slow.</li></ul>
+        <h4>Correct answer</h4>
+        <ul>
+          <li>Large ε: correct. The brake turns on late, so AHL climbs higher first.</li>
+          <li>ε = 0: the brake turns on at the <em>same</em> level as the accelerator. That's a modest change, not a collapse, because ε is small (5·10⁻⁹ vs a threshold of 7·10⁻⁸).</li>
+        </ul>
+        <h4>In the code</h4>
+        <ul><li><code>production.lactonase_production</code>; figure 01.</li></ul>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="num">Q3</span> Why can the solver use the Thomas algorithm? <span class="badge open">needed explaining</span></summary>
+      <div class="body">
+        <h4>My answer</h4>
+        <ul><li>It's faster, but I wasn't sure why it fits this problem.</li></ul>
+        <h4>Correct answer</h4>
+        <ul>
+          <li>Diffusion links each grid point only to its neighbors. In 2D that's 4 neighbors, which makes one big messy system.</li>
+          <li>ADI handles <strong>one direction at a time</strong>, so each grid row becomes a simple chain where every point touches only 2 neighbors.</li>
+          <li>Thomas is a shortcut built for exactly that chain shape. Its cost grows only in proportion to the row length.</li>
+          <li>Treating one direction implicitly also keeps the step stable.</li>
+        </ul>
+        <h4>In the code</h4>
+        <ul><li><code>solver.thomas_solve</code>, <code>implicit_x_half_step</code>; figure 03.</li></ul>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="num">Q4</span> Colony radius and density both mean "how many bacteria". Which does what? <span class="badge good">mostly right</span></summary>
+      <div class="body">
+        <h4>My answer</h4>
+        <ul><li>Density controls how much is produced; radius controls where.</li></ul>
+        <h4>Correct answer</h4>
+        <ul>
+          <li>Correct. One nuance: a bigger radius also covers more area, so it adds some amount as well.</li>
+        </ul>
+        <h4>In the code</h4>
+        <ul><li><code>production.source_terms</code>, <code>colony_footprint</code>; figure 02.</li></ul>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="num">Q5</span> After an antibiotic dose, why does lactonase collapse but AHL stay? <span class="badge bad">mostly off</span></summary>
+      <div class="body">
+        <h4>My answer</h4>
+        <ul><li>AHL diffuses 100× faster, so it can "run away" from the antibiotic.</li></ul>
+        <h4>Correct answer</h4>
+        <ul>
+          <li>The antibiotic acts on <strong>bacteria</strong>, and it's the same everywhere, so there's nothing to run from.</li>
+          <li>The key rows of the table are the <strong>decay</strong> rates: lactonase halves in ~1.4 h, AHL in ~125 h.</li>
+          <li>Once production stops, lactonase disappears fast and AHL lingers. The cause is a timescale difference, not resistance.</li>
+        </ul>
+        <h4>In the code</h4>
+        <ul><li><code>params.half_life</code>; figure 08.</li></ul>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="num">Q6</span> Why can't the paper's Fig. 5 be reproduced exactly? What is the strict control? <span class="badge bad">off</span></summary>
+      <div class="body">
+        <h4>My answer</h4>
+        <ul><li>Antibiotic diffusion depends on temperature and environment.</li></ul>
+        <h4>Correct answer</h4>
+        <ul>
+          <li>In this model the antibiotic doesn't diffuse at all; it's a fixed function of time.</li>
+          <li>The real reason is <strong>randomness</strong>: colony positions, the number of starting colonies, and new colonies are all drawn at random.</li>
+          <li><strong>Strict control:</strong> one fixed colony at the center (radius 10 µm, full density, no randomness). That's the paper's own Fig. 4 setup.</li>
+        </ul>
+        <h4>In the code</h4>
+        <ul><li><code>controls.deterministic_control</code>, <code>statistical_control</code>; figures 09–10.</li></ul>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="num">Q7</span> How could QS influence the bacteria, not just be a readout? <span class="badge open">implemented</span></summary>
+      <div class="body">
+        <h4>My answer</h4>
+        <ul><li>Still figuring it out.</li></ul>
+        <h4>Correct answer (and what we built)</h4>
+        <ul>
+          <li>Each colony reads the AHL at its center and passes it through the same threshold switch it uses for production.</li>
+          <li>The result (0 to 1) multiplies the growth rate: up to 2× faster when QS is fully on.</li>
+          <li>That closes a loop: more signal → faster growth → bigger colony → more signal.</li>
+          <li>A DNA-uptake counter is recorded too, as a hook for the "collective DNA uptake" question in the proposal.</li>
+        </ul>
+        <h4>In the code</h4>
+        <ul><li><code>qs_model/feedback.py</code>; figure 12.</li></ul>
+      </div>
+    </details>
+  </section>
+
+  <!-- ===================== FIGURES ===================== -->
+  <section id="figures">
+    <p class="eyebrow">Re-building the paper</p>
+    <h2>Figures from the reproduction</h2>
+    <p class="lede">Each figure is tied to a step of the model or a quiz question.</p>
+
+    <div class="grid two">
+      <figure class="fig">
+        <img src="assets/figures/01_hill_switch_Q2.png" alt="Production rates of AHL and lactonase versus AHL concentration" loading="lazy">
+        <figcaption><strong><span class="tag">Q2</span>The QS switch</strong>
+          <ul><li>AHL production jumps at the threshold.</li><li>Lactonase (the brake) turns on slightly later; a bigger ε delays it more.</li></ul></figcaption>
+      </figure>
+      <figure class="fig">
+        <img src="assets/figures/02_footprint_Q4.png" alt="Gaussian colony footprints" loading="lazy">
+        <figcaption><strong><span class="tag">Q4</span>Where molecules are made</strong>
+          <ul><li>Each colony is a soft blob; the radius sets its width.</li><li>Density scales the height.</li></ul></figcaption>
+      </figure>
+      <figure class="fig">
+        <img src="assets/figures/03_adi_vs_full_implicit_Q3.png" alt="Matrix shapes for full implicit and ADI" loading="lazy">
+        <figcaption><strong><span class="tag">Q3</span>Why ADI + Thomas is fast</strong>
+          <ul><li>Left: one big tangled system. Right: many small chains.</li></ul></figcaption>
+      </figure>
+      <figure class="fig">
+        <img src="assets/figures/04_density_and_antibiotic.png" alt="Density and antibiotic over time" loading="lazy">
+        <figcaption><strong>Density and antibiotic</strong>
+          <ul><li>Population rises, then drops ~30% after each dose.</li><li>The antibiotic peaks 4 h after dosing.</li></ul></figcaption>
+      </figure>
+      <figure class="fig">
+        <img src="assets/figures/06_fields_snapshots.png" alt="AHL and lactonase maps at 5, 12 and 50 hours" loading="lazy">
+        <figcaption><strong>Signal maps (paper Fig. 6)</strong>
+          <ul><li>AHL (blue) and lactonase (orange) around colonies (circles) at 5, 12 and 50 h.</li></ul></figcaption>
+      </figure>
+      <figure class="fig">
+        <img src="assets/figures/07_max_concentrations.png" alt="Maximum AHL and lactonase over time" loading="lazy">
+        <figcaption><strong>Peak signal over time (paper Fig. 7)</strong>
+          <ul><li>Our final AHL: 4.88·10⁻¹⁰ (4-seed mean); the paper's: 4.89·10⁻¹⁰.</li><li>AHL never reaches the QS threshold (dashed line).</li></ul></figcaption>
+      </figure>
+      <figure class="fig">
+        <img src="assets/figures/08_half_lives_Q5.png" alt="Decay curves of AHL and lactonase" loading="lazy">
+        <figcaption><strong><span class="tag">Q5</span>Why AHL lingers</strong>
+          <ul><li>Lactonase is gone within hours; AHL lasts days.</li></ul></figcaption>
+      </figure>
+      <figure class="fig">
+        <img src="assets/figures/11_coupling_Q1.png" alt="AHL with and without lactonase" loading="lazy">
+        <figcaption><strong><span class="tag">Q1</span>The brake at work</strong>
+          <ul><li>Without lactonase (dashed), AHL gets ~4× higher.</li></ul></figcaption>
+      </figure>
+      <figure class="fig">
+        <img src="assets/figures/09_positive_control_deterministic_Q6.png" alt="Deterministic control and perturbation test" loading="lazy">
+        <figcaption><strong><span class="tag">Q6</span>Strict positive control</strong>
+          <ul><li>One fixed colony, no randomness.</li><li>Raising production 20–50% changes results smoothly, matching the paper's Fig. 4 stability test.</li></ul></figcaption>
+      </figure>
+      <figure class="fig">
+        <img src="assets/figures/10_seed_variability_Q6.png" alt="Runs with different random seeds" loading="lazy">
+        <figcaption><strong><span class="tag">Q6</span>Same model, different dice</strong>
+          <ul><li>Every random seed gives a different run, so we compare averages to the paper.</li></ul></figcaption>
+      </figure>
+      <figure class="fig">
+        <img src="assets/figures/05_colony_size.png" alt="Total colony size over time" loading="lazy">
+        <figcaption><strong>Colony size under treatment</strong>
+          <ul><li>One dose shrinks colonies ~10×; three doses nearly wipe them out.</li></ul></figcaption>
+      </figure>
+      <figure class="fig">
+        <img src="assets/figures/12_feedback_Q7.png" alt="Feedback on vs off" loading="lazy">
+        <figcaption><strong><span class="tag">Q7</span>QS driving growth</strong>
+          <ul><li>Paper strain: feedback changes nothing, because QS never switches on.</li><li>Sensitive strain: colonies are 33% bigger before treatment.</li></ul></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ===================== EMERGENCE ===================== -->
+  <section id="emergence">
+    <p class="eyebrow">Going beyond the paper</p>
+    <h2>Individual cells, food, and emergence</h2>
+    <p class="lede">
+      The paper's colonies are blobs that can't run out of food. So we built a second model where
+      each dot is a <strong>cell cluster</strong> that eats nutrient, stores food, divides, starves,
+      moves toward food, and links to its neighbors. The paper's chemistry runs underneath, unchanged.
+    </p>
+
+    <div class="grid three">
+      <div class="card"><h3>Stage 0: control</h3><ul><li>The paper's model, animated.</li><li>Our new solver matches the original <strong>exactly</strong> (difference 0.0).</li></ul></div>
+      <div class="card"><h3>(a) Food sharing</h3><ul><li>Cells pass food to hungrier neighbors along the contact network.</li><li>Do supply routes form?</li></ul></div>
+      <div class="card"><h3>(b) Signal pause</h3><ul><li>Starving cells emit a signal; fed cells relay it and eat less.</li><li>Based on <em>B. subtilis</em> biofilms (Liu et al. 2015; Prindle et al. 2015).</li></ul></div>
+    </div>
+
+    <div class="grid two" style="margin-top:16px">
+      <figure class="fig wide">
+        <video controls preload="metadata" playsinline src="assets/videos/s1_compare.mp4"></video>
+        <figcaption><strong>All four experiments, side by side</strong>
+          <ul><li>Top left: control. Top right: (a) sharing. Bottom left: (b) pause + relay. Bottom right: both.</li>
+              <li>Each tile shows the cells (colored by subnetwork) and each cell's food (red = starving).</li></ul></figcaption>
+      </figure>
+      <figure class="fig">
+        <video controls preload="metadata" playsinline src="assets/videos/stage0_paper_model.mp4"></video>
+        <figcaption><strong>Stage 0: the paper's model as a movie</strong>
+          <ul><li>Figure 06, every 0.1 h for 50 h. The antibiotic is added at 12 h.</li></ul></figcaption>
+      </figure>
+      <figure class="fig">
+        <video controls preload="metadata" playsinline src="assets/videos/stage1_pause.mp4"></video>
+        <figcaption><strong>(b) The starvation wave</strong>
+          <ul><li>Around 20 h the relayed signal (panel E) floods the colony, and nutrient (C) returns to the center.</li></ul></figcaption>
+      </figure>
+      <figure class="fig wide">
+        <img src="assets/figures/s1_kymographs.png" alt="Radius versus time maps of nutrient and cell food for four runs" loading="lazy">
+        <figcaption><strong>Each movie squeezed into one picture (radius vs. time)</strong>
+          <ul><li>Left: nutrient. Right: cell food. White line: colony edge.</li>
+              <li>Row 3 (pause): the green flood at ~20 h is nutrient returning to the starved center.</li></ul></figcaption>
+      </figure>
+      <figure class="fig wide">
+        <img src="assets/figures/s1_final_snapshots.png" alt="Final cell positions for four runs" loading="lazy">
+        <figcaption><strong>Where everyone ends up (36 h)</strong>
+          <ul><li>Control: a hollow ring. Sharing: one compact colony with a hungry core. Pause: scattered but fed.</li></ul></figcaption>
+      </figure>
+      <figure class="fig wide">
+        <img src="assets/figures/s1_timeseries.png" alt="Time series for four runs" loading="lazy">
+        <figcaption><strong>The numbers over time</strong>
+          <ul><li>Cells, starving cells, center food, center nutrient, islands, supply routes.</li></ul></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ===================== FINDINGS ===================== -->
+  <section id="findings">
+    <p class="eyebrow">What we learned</p>
+    <h2>Findings</h2>
+
+    <div class="callout">
+      <strong>Surprise #1:</strong> with the paper's own parameters, quorum sensing <strong>never switches on</strong>.
+      AHL peaks ~7× below the threshold, because lactonase and the absorbing edges of the small domain hold it down.
+      The same happens in our cell model.
+    </div>
+
+    <div class="grid two">
+      <div class="card">
+        <h3>Reproduction</h3>
+        <ul>
+          <li>Matches the paper's printed values: final AHL 4.88 vs 4.89 (×10⁻¹⁰ mol/L).</li>
+          <li>7 of 8 statistical checks pass. The one miss: our lactonase peaks 0–1 h <em>after</em> the dose, the paper's before.</li>
+          <li>The paper's "QS stays high after treatment" refers to AHL that is already far below the switch point.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Q7: QS driving growth</h3>
+        <ul>
+          <li>Matters only when QS can switch on (a more sensitive strain).</li>
+          <li>Then colonies grow 33% larger before treatment and recover about 30% larger.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Emergence in the cell model (one seed)</h3>
+        <ul>
+          <li><strong>A starved center appears by itself</strong>: edge cells eat first.</li>
+          <li><strong>Sharing</strong> delays starvation (first starving cells at ~30 h vs ~18 h) and keeps the colony connected (16 vs 108 islands), but leads to a <em>synchronized</em> collapse.</li>
+          <li><strong>The relayed signal</strong> brings nutrient back to the center but stops growth for everyone. Without the relay, it does nothing.</li>
+          <li><strong>Mechanisms interfere</strong>: sharing hides the starvation that would trigger the signal.</li>
+          <li><strong>Symmetry breaking</strong>: colonies grow lopsided, in a direction set by chance.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Honest caveats</h3>
+        <ul>
+          <li>Emergence results come from a single random seed; they need repeats.</li>
+          <li>Nutrient, movement and sharing parameters are assumptions, not measurements.</li>
+          <li>No branching patterns yet at these settings.</li>
+          <li>The early sawtooth in the plots comes from identical starting cells dividing in lockstep.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== NEXT ===================== -->
+  <section id="next">
+    <p class="eyebrow">Where this goes</p>
+    <h2>Next steps</h2>
+    <div class="grid three">
+      <div class="card"><h3>Make QS matter</h3><ul><li>Run with a strain whose QS can switch on, and let QS boost movement.</li></ul></div>
+      <div class="card"><h3>Look for branching</h3><ul><li>Poorer nutrient and slower spreading should produce finger-like branches.</li></ul></div>
+      <div class="card"><h3>Repeat with many seeds</h3><ul><li>Turn the single-run effects into measured ranges.</li></ul></div>
+      <div class="card"><h3>Antibiotic resistance</h3><ul><li>Drug soaking in from outside, QS-triggered tolerance, shared protective enzymes, and resistance picked up from DNA.</li></ul></div>
+      <div class="card"><h3>Network architectures</h3><ul><li>The original question: hierarchical vs parallel QS circuits.</li></ul></div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  Built by Michaela Xie with Claude Code for 02-120 (Fall 2026).
+  Model source: C. Kuttler &amp; A. Maslovskaya (2022), <em>Front. Appl. Math. Stat.</em> 8:951783,
+  <a href="https://doi.org/10.3389/fams.2022.951783">doi:10.3389/fams.2022.951783</a> (CC BY).
+  Code, tests and the full build journal: <a href="https://github.com/michaelaistired/02120_QS_Final_Project">github.com/michaelaistired/02120_QS_Final_Project</a>.
+</footer>
+
+</body>
+</html>
